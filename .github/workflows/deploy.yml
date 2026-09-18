@@ -28,7 +28,7 @@ jobs:
       - run: npm run build
       - uses: actions/configure-pages@v5
         with:
-          enabled: true
+          enablement: true
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-pages-artifact@v3
         with:
