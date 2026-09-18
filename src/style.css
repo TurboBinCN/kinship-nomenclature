@@ -61,6 +61,137 @@ body {
   letter-spacing: 1px;
 }
 
+/* ---------- 家族树 ---------- */
+.tree-wrap h2 {
+  font-size: 15px;
+  letter-spacing: 3px;
+  color: var(--cinnabar-dark);
+  margin-bottom: 10px;
+}
+
+.tree-hint {
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: var(--ink-light);
+  margin-left: 10px;
+}
+
+.tree {
+  overflow-x: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 6px;
+  margin-bottom: 36px;
+}
+
+.tree svg {
+  display: block;
+  margin: 0 auto;
+  min-width: 620px;
+}
+
+.tree-line {
+  stroke: var(--border-strong, #c9a24b);
+  stroke-width: 1.5;
+  opacity: 0.55;
+}
+
+.tree-spouse {
+  stroke: #c9a24b;
+  stroke-width: 2;
+  opacity: 0.8;
+}
+
+.tree-divider {
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 4 5;
+}
+
+.tree-zone {
+  font-size: 12px;
+  letter-spacing: 4px;
+  fill: var(--ink-light);
+}
+
+.tree-node rect {
+  fill: var(--card);
+  stroke: var(--border-strong, #c9a24b);
+  stroke-width: 1.2;
+  transition: fill 0.2s;
+}
+
+.tree-node text {
+  font-size: 13px;
+  fill: var(--ink);
+  font-family: inherit;
+  letter-spacing: 1px;
+  user-select: none;
+}
+
+.tree-node {
+  cursor: pointer;
+}
+
+.tree-node:hover rect {
+  fill: #f7e9d9;
+}
+
+.tree-node.lit rect {
+  fill: var(--cinnabar);
+  stroke: var(--cinnabar-dark);
+}
+
+.tree-node.lit text {
+  fill: #fff;
+}
+
+.tree-node.self rect {
+  stroke-width: 2.2;
+  stroke: var(--gold);
+}
+
+.tree-node.self text {
+  fill: var(--gold);
+  font-weight: 600;
+}
+
+.tree-node.self.lit rect {
+  fill: var(--cinnabar);
+}
+
+.tree-node.self.lit text {
+  fill: #fff;
+}
+
+/* ---------- 模式切换 ---------- */
+.mode-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mode-btn {
+  padding: 8px 18px;
+  font-size: 14px;
+  font-family: inherit;
+  letter-spacing: 1px;
+  background: transparent;
+  color: var(--ink-light);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mode-btn.active {
+  background: var(--cinnabar);
+  color: #fff;
+  border-color: var(--cinnabar);
+}
+
 /* ---------- 查询 ---------- */
 .query {
   margin-bottom: 28px;
@@ -86,6 +217,14 @@ body {
 
 #query-input:focus {
   border-color: var(--cinnabar);
+}
+
+.title .dialect {
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: var(--ink-light);
+  margin-left: 4px;
 }
 
 #query-btn {
@@ -242,6 +381,30 @@ body {
   color: var(--cinnabar-dark);
   font-size: 14px;
   line-height: 1.8;
+}
+
+/* ---------- 反查结果 ---------- */
+.title.small {
+  font-size: 22px;
+}
+
+.chain.rev li {
+  padding: 10px 0 10px 20px;
+}
+
+.rev-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 16px;
+}
+
+.rev-chain {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--ink-light);
 }
 
 /* ---------- 说明 ---------- */

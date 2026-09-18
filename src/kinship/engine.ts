@@ -1,4 +1,5 @@
 import { COMBINE, DIRECT, EDGE_TEXT, RANK_CHARS, RANK_TPL, STRIP } from './data'
+import { applyDialect, type Dialect } from './dialects'
 import type { DeriveResult, Edge, Relation } from './types'
 
 /* ---------- 基础工具 ---------- */
@@ -38,10 +39,23 @@ export function edgesToText(edges: Edge[]): string {
   return edges
     .map((e) => {
       let t: string
-      if (e.k === 'B') t = elderOf(e) ? '哥哥' : '弟弟'
-      else if (e.k === 'Z') t = elderOf(e) ? '姐姐' : '妹妹'
-      else t = EDGE_TEXT[e.k]
-      if (e.n != null) t = rankChar(e.n) + t
+      if (e.n != null && (e.k === 'B' || e.k === 'Z')) {
+        // 带排行时用单字（三哥 / 二姐），不带排行用叠字（哥哥 / 姐姐）
+        const single = e.k === 'B' ? (elderOf(e) ? '哥' : '弟') : elderOf(e) ? '姐' : '妹'
+        t = rankChar(e.n) + single
+      } else {
+        t =
+          e.k === 'B'
+            ? elderOf(e)
+              ? '哥哥'
+              : '弟弟'
+            : e.k === 'Z'
+              ? elderOf(e)
+                ? '姐姐'
+                : '妹妹'
+              : EDGE_TEXT[e.k]
+        if (e.n != null) t = rankChar(e.n) + t
+      }
       return t
     })
     .join('的')
@@ -56,10 +70,6 @@ function rankStr(n: number): string {
   return rankChar(n)
 }
 
-/**
- * 规范化：合并「同一亲缘节点」的配偶边。
- * 爸爸的妻子=妈妈、妈妈的丈夫=爸爸、爷爷的妻子=奶奶……
- */
 function canonical(edges: Edge[]): Edge[] {
   const out: Edge[] = []
   for (const e of edges) {
@@ -77,6 +87,11 @@ function canonical(edges: Edge[]): Edge[] {
     out.push(e)
   }
   return out
+}
+
+/** 边序列规范化（合并配偶边）：导出供反向索引复用 */
+export function canonicalize(edges: Edge[]): Edge[] {
+  return canonical(edges)
 }
 
 /* ---------- 排行修饰 ---------- */
@@ -119,12 +134,8 @@ function decorate(title: string, edges: Edge[]): string {
 
 /* ---------- 堂/表判定 ---------- */
 
-/**
- * 判定来源分支：
- * - 长辈链仅由「父 F」与「父之兄弟 OB/YB」组成 → 同宗（堂）
- * - 经由母系 M、父之姐妹 Z 或任何姻亲边 → 外支（表）
- */
-function classify(edges: Edge[]): { relation: Relation; label: string } {
+/** 判定来源分支（导出供反向索引复用） */
+export function classify(edges: Edge[]): { relation: Relation; label: string } {
   // 路径中出现姻亲边（且未被 canonical 归并）→ 姻亲
   if (edges.some((e) => e.k === 'H' || e.k === 'W')) {
     return { relation: 'kin', label: '姻亲 · 配偶一方' }
@@ -175,7 +186,16 @@ function classify(edges: Edge[]): { relation: Relation; label: string } {
  *   title(path) = combine( 长辈称谓, title(剩余路径) )
  * 即「你父母对TA的称呼」+「辈分偏移标记」——祖先传下来的口头递归函数。
  */
-function deriveRecursive(edges: Edge[]): string {
+function titleStd(input: Edge[]): string {
+  const edges = canonical(input)
+  if (!edges.length) return '自己'
+
+  const ranked = rankedTitle(edges)
+  if (ranked) return ranked
+
+  const direct = DIRECT[encode(edges)]
+  if (direct) return decorate(direct, edges)
+
   const first = edges[0]
 
   if (first.k === 'F' || first.k === 'M') {
@@ -184,13 +204,13 @@ function deriveRecursive(edges: Edge[]): string {
     const up = edges.slice(0, i)
     const rest = edges.slice(i)
     const base = DIRECT[encode(up)] ?? edgesToText(up)
-    const sub = deriveTitle(rest)
+    const sub = titleStd(rest)
     return COMBINE[base]?.[sub] ?? `${base}的${sub}`
   }
 
   if (first.k === 'B' || first.k === 'Z' || first.k === 'H' || first.k === 'W') {
     const base = edgesToText([first])
-    const sub = deriveTitle(edges.slice(1))
+    const sub = titleStd(edges.slice(1))
     return COMBINE[base]?.[sub] ?? `${base}的${sub}`
   }
 
@@ -201,29 +221,20 @@ function deriveRecursive(edges: Edge[]): string {
   const rest = edges.slice(i)
   if (!rest.length) return DIRECT[encode(down)] ?? edgesToText(down)
   const base = DIRECT[encode(down)] ?? edgesToText(down)
-  const sub = deriveTitle(rest)
+  const sub = titleStd(rest)
   return COMBINE[base]?.[sub] ?? `${base}的${sub}`
 }
 
-/** 关系路径 → 称谓 */
-export function deriveTitle(input: Edge[]): string {
-  const edges = canonical(input)
-  if (!edges.length) return '自己'
-
-  const ranked = rankedTitle(edges)
-  if (ranked) return ranked
-
-  const direct = DIRECT[encode(edges)]
-  if (direct) return decorate(direct, edges)
-
-  return deriveRecursive(edges)
+/** 关系路径 → 称谓（dialect 为输出方言，仅做出口词根替换） */
+export function deriveTitle(input: Edge[], dialect: Dialect = 'standard'): string {
+  return applyDialect(titleStd(canonical(input)), dialect)
 }
 
-/** 递归推导链：逐层前缀的称谓（妈妈 → 姥姥 → 舅姥爷 → 三舅姥爷） */
-function buildChain(edges: Edge[]): string[] {
+/** 递归推导链：逐层前缀的称谓（妈妈 → 姥娘 → 舅姥爷 → 三舅姥爷） */
+function buildChain(edges: Edge[], dialect: Dialect): string[] {
   const titles: string[] = []
   for (let i = 1; i <= edges.length; i++) {
-    const t = deriveTitle(edges.slice(0, i))
+    const t = deriveTitle(edges.slice(0, i), dialect)
     if (titles[titles.length - 1] !== t) titles.push(t)
   }
   return titles
@@ -231,11 +242,11 @@ function buildChain(edges: Edge[]): string[] {
 
 /* ---------- 对外 API ---------- */
 
-export function derive(input: Edge[]): DeriveResult {
+export function derive(input: Edge[], dialect: Dialect = 'standard'): DeriveResult {
   const edges = canonical(input)
-  const title = deriveTitle(edges)
+  const title = deriveTitle(edges, dialect)
   const { relation, label } = classify(edges)
-  const chain = buildChain(edges)
+  const chain = buildChain(edges, dialect)
 
   const steps: string[] = []
   if (chain.length > 1) {
