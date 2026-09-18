@@ -7,7 +7,9 @@
 
 ## 在线使用
 
-打开仓库的 GitHub Pages 页面即可查询（见 About 链接）。本地运行：
+**[点此直接体验 → https://turbobincn.github.io/kinship-nomenclature/](https://turbobincn.github.io/kinship-nomenclature/)**
+
+打开即可查询，无需安装。本地运行：
 
 ```bash
 npm install
