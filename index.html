@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>你的亲戚的叫法 · kinship-nomenclature</title>
+    <meta
+      name="description"
+      content="中国传统亲属称谓递归推导工具 —— 不只是一张静态表格，而是可递归推演的亲属关系链。"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <header class="hero">
+        <div class="seal">亲</div>
+        <h1>你的亲戚的叫法</h1>
+        <p class="subtitle">中国传统亲属称谓递归推导 · 拆解农耕时代家族的人际编码</p>
+      </header>
+
+      <main>
+        <section class="query">
+          <div class="input-row">
+            <input
+              id="query-input"
+              type="text"
+              placeholder="输入关系，如：姥姥的三哥"
+              autocomplete="off"
+              autofocus
+            />
+            <button id="query-btn">推导</button>
+          </div>
+          <div class="chips" id="chips"></div>
+        </section>
+
+        <section id="result" class="result hidden"></section>
+
+        <section class="about">
+          <h2>递归公式</h2>
+          <blockquote>
+            你的称呼 = 父母对TA的称呼 + 辈分标记（爷 / 姥 / 外）+ 排行（大、二、三……）
+          </blockquote>
+          <p>
+            整条链是从父母那一代的称谓继承过来的，不是凭空造词：先定是谁（舅 / 姨 / 姑 / 叔 /
+            伯），再定高几辈（两辈上爷 / 奶 / 姥），最后同辈标排行。到了平辈，规则切换成简化版——
+            只有爸爸兄弟（叔伯）的孩子属于本家祠堂一脉叫<strong>堂</strong>，其余姑姑、舅舅、姨妈家的子女都叫<strong>表</strong>。
+          </p>
+        </section>
+      </main>
+
+      <footer>
+        <p>
+          kinship-nomenclature · MIT License ·
+          <a href="https://github.com/yongjieying/kinship-nomenclature" target="_blank" rel="noreferrer"
+            >GitHub</a
+          >
+        </p>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "name": "kinship-nomenclature",
+  "displayName": "你的亲戚的叫法",
+  "version": "0.1.0",
+  "description": "中国传统亲属称谓递归推导工具 —— 不只是一张静态表格，而是可递归推演的亲属关系链。",
+  "type": "module",
+  "keywords": [
+    "kinship",
+    "chinese",
+    "亲属称谓",
+    "亲戚",
+    "叫法",
+    "nomenclature"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "tsx tests/smoke.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0"
+  }
+}
