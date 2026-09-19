@@ -9,19 +9,51 @@
 
 **[点此直接体验 → https://turbobincn.github.io/kinship-nomenclature/](https://turbobincn.github.io/kinship-nomenclature/)**
 
-打开即可查询，无需安装。本地运行：
+打开即可查询，无需安装。
+
+## 本地运行
+
+### 环境要求
+
+- [Node.js](https://nodejs.org/) ≥ 18（Vite 6 的最低要求），自带 npm，无需其他依赖
+- 任意现代浏览器（页面为纯静态，构建后零依赖）
+
+### 克隆与安装
 
 ```bash
+git clone https://github.com/turbobincn/kinship-nomenclature.git
+cd kinship-nomenclature
 npm install
-npm run dev      # 开发预览
-npm test         # 运行 72 个称谓用例
-npm run build    # 构建静态页面到 dist/
 ```
 
-也可以直接引入核心库：
+### 开发预览
+
+```bash
+npm run dev      # 启动 Vite 开发服务器，默认 http://localhost:5173
+```
+
+浏览器打开终端里提示的地址即可查询，修改 `src/` 下代码会热更新。
+
+### 运行测试
+
+```bash
+npm test         # 运行 72 个称谓用例（含正反向查询与方言用例）
+```
+
+### 构建与预览产物
+
+```bash
+npm run build    # 类型检查 + 构建静态页面到 dist/
+npm run preview  # 本地预览 dist/ 构建产物
+```
+
+### 常见问题
+
+- **双击 index.html 打不开 / 按钮无反应？** 页面使用 ES Module，不能通过 `file://` 协议直接打开，请用 `npm run dev` 或 `npm run preview` 访问。
+- **作为库引入**：核心引擎与页面演示分离，可以直接 import 使用：
 
 ```ts
-import { lookup } from './src/index'
+import { lookup, reverseLookup } from './src/index'
 
 const r = lookup('姥姥的三哥')
 console.log(r.title)        // 三舅姥爷
@@ -34,8 +66,6 @@ lookup('妈妈的二姐', { dialect: 'southwest' }).title  // 二孃
 lookup('姨妈', { dialect: 'southwest' }).title        // 孃孃
 
 // 反向查询：称呼 → 谁会被这么称呼（枚举路径 + 正向推导建索引，双向自洽）
-import { reverseLookup } from './src/index'
-
 reverseLookup('三舅姥爷')
 // → 妈妈的妈妈的三哥（姥姥的三哥）
 // → 妈妈的妈妈的三弟
