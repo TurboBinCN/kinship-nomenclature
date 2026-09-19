@@ -5,6 +5,8 @@
 
 输入一句关系描述，例如「姥姥的三哥」，直接得到「三舅姥爷」——并展示完整的推导链。
 
+![演示：查询「姥姥的三哥」得到「三舅姥爷」，并点亮家族树](./docs/screenshot.png)
+
 ## 在线使用
 
 **[点此直接体验 → https://turbobincn.github.io/kinship-nomenclature/](https://turbobincn.github.io/kinship-nomenclature/)**
