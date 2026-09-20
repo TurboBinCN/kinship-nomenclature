@@ -119,17 +119,35 @@ function rankedTitle(edges: Edge[]): string | null {
   return tpl(rankStr(re.n!))
 }
 
-/** 直称 + 排行（三哥、大伯、二叔） */
+/** 直称 + 排行（三哥、大伯、二叔）：排行只落在末位边——即最终对象本人的排行。
+ *  路径中长辈的排行（「四舅」的四）不冠给晚辈称谓，因为晚辈的排行按同辈另算 */
 function decorate(title: string, edges: Edge[]): string {
-  const re = edges.find((e) => e.n != null && (e.k === 'S' || e.k === 'D'))
-  if (!re) {
-    // B/Z 排行未命中模板时，尝试去尾直称（三哥 / 大伯）
-    const bz = edges.find((e) => e.n != null && (e.k === 'B' || e.k === 'Z'))
-    if (!bz) return title
+  const last = edges[edges.length - 1]
+  if (!last || last.n == null) return title
+  if (last.k === 'S' || last.k === 'D') return rankStr(last.n) + title
+  if (last.k === 'B' || last.k === 'Z') {
     const stripped = STRIP[title]
-    return stripped ? rankStr(bz.n!) + stripped : title
+    return stripped ? rankStr(last.n) + stripped : title
   }
-  return rankStr(re.n!) + title
+  return title
+}
+
+/** 末段为「兄弟/姐妹 → 子女」且子女长幼未知 → 表堂亲年龄无法推知（姑姑的儿子可哥可弟） */
+function cousinAgeUnknown(edges: Edge[]): boolean {
+  if (edges.length < 2) return false
+  const b = edges[edges.length - 2]
+  const t = edges[edges.length - 1]
+  return (
+    (b.k === 'B' || b.k === 'Z') && (t.k === 'S' || t.k === 'D') && t.elder === undefined
+  )
+}
+
+/** 给表堂亲路径补上明确长幼：B/Z 边与末位子女边同标 */
+function withCousinAge(edges: Edge[], elder: boolean): Edge[] {
+  const out = edges.slice()
+  out[out.length - 2] = { ...out[out.length - 2], elder }
+  out[out.length - 1] = { ...out[out.length - 1], elder }
+  return out
 }
 
 /* ---------- 堂/表判定 ---------- */
@@ -192,6 +210,17 @@ function titleStd(input: Edge[]): string {
 
   const ranked = rankedTitle(edges)
   if (ranked) return ranked
+
+  // 表堂亲长幼未知：两种可能称谓只差末字（哥/弟、姐/妹）→ 合并式「表哥(弟)」
+  if (cousinAgeUnknown(edges)) {
+    const tElder = titleStd(withCousinAge(edges, true))
+    const tYounger = titleStd(withCousinAge(edges, false))
+    if (tElder === tYounger) return tElder
+    if (tElder.length === tYounger.length && tElder.slice(0, -1) === tYounger.slice(0, -1)) {
+      return `${tElder}(${tYounger.slice(-1)})`
+    }
+    return tElder
+  }
 
   const direct = DIRECT[encode(edges)]
   if (direct) return decorate(direct, edges)
@@ -256,8 +285,13 @@ export function derive(input: Edge[], dialect: Dialect = 'standard'): DeriveResu
     )
   }
   if (edges.some((e) => e.n != null && (e.k === 'B' || e.k === 'Z' || e.k === 'S' || e.k === 'D'))) {
-    const n = edges.find((e) => e.n != null)!.n!
-    steps.push(`排行标记：${rankChar(n)}（同辈冠序，大、二、三……）`)
+    const last = edges[edges.length - 1]
+    if (last?.n != null) {
+      steps.push(`排行标记：${rankChar(last.n)}（同辈冠序，大、二、三……）`)
+    } else {
+      // 排行挂在路径中长辈上（如「四舅」的四）：属长辈本人，晚辈排行按同辈另算
+      steps.push('排行随所经长辈（如「四舅」的四），不冠于最终称谓——晚辈长幼/排行另行按同辈排')
+    }
   }
   steps.push(`分支判定：${label}`)
 

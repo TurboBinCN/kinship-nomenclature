@@ -38,15 +38,19 @@ const CASES: Case[] = [
   { input: '老公的妈妈', expect: '婆婆' },
   { input: '老婆的爸爸', expect: '岳父' },
   { input: '儿媳', expect: '儿媳' },
-  // 平辈：堂 / 表
-  { input: '叔叔的女儿', expect: '堂妹', relation: 'tang' },
-  { input: '伯父的儿子', expect: '堂哥', relation: 'tang' },
-  { input: '姑姑的儿子', expect: '表哥', relation: 'biao' },
-  { input: '舅舅的女儿', expect: '表姐', relation: 'biao' },
-  { input: '姨妈的儿子', expect: '表哥', relation: 'biao' },
+  // 平辈：堂 / 表（长幼未知 → 合并式「表哥(弟)」；直接称谓词才可定长幼）
+  { input: '叔叔的女儿', expect: '堂姐(妹)', relation: 'tang' },
+  { input: '伯父的儿子', expect: '堂哥(弟)', relation: 'tang' },
+  { input: '姑姑的儿子', expect: '表哥(弟)', relation: 'biao' },
+  { input: '舅舅的女儿', expect: '表姐(妹)', relation: 'biao' },
+  { input: '姨妈的儿子', expect: '表哥(弟)', relation: 'biao' },
   { input: '堂弟', expect: '堂弟', relation: 'tang' },
   { input: '表哥', expect: '表哥', relation: 'biao' },
-  { input: '爸爸的哥哥的儿子', expect: '堂哥', relation: 'tang' },
+  { input: '爸爸的哥哥的儿子', expect: '堂哥(弟)', relation: 'tang' },
+  // 「家」作连接词；长辈的排行不冠给晚辈（晚辈排行按同辈另算）
+  { input: '四舅家的女儿', expect: '表姐(妹)', relation: 'biao' },
+  { input: '四舅的女儿', expect: '表姐(妹)', relation: 'biao' },
+  { input: '三哥的儿子', expect: '侄子', relation: 'tang' },
   // 晚辈
   { input: '儿子的儿子', expect: '孙子' },
   { input: '女儿的儿子', expect: '外孙' },
@@ -97,6 +101,7 @@ const REVERSE_CASES: Array<{ input: string; expectAny: string[]; min?: number }>
   { input: '堂妹', expectAny: ['爸爸的弟弟的女儿'] },
   { input: '表哥', expectAny: ['妈妈的哥哥的儿子', '爸爸的姐姐的儿子'], min: 2 },
   { input: '大儿子', expectAny: ['大儿子'] },
+  { input: '二表哥', expectAny: ['妈妈的哥哥的二儿子'] },
   { input: '不存在的称呼', expectAny: [] },
 ]
 

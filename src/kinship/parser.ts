@@ -82,14 +82,16 @@ const LEX_RAW: Array<[string, LexEdge[]]> = [
   ['姐', [{ k: 'Z', elder: true }]],
   ['妹妹', [{ k: 'Z', elder: false }]],
   ['妹', [{ k: 'Z', elder: false }]],
-  ['堂哥', [{ k: 'F' }, { k: 'B', elder: true }, { k: 'S' }]],
-  ['堂弟', [{ k: 'F' }, { k: 'B', elder: false }, { k: 'S' }]],
-  ['堂姐', [{ k: 'F' }, { k: 'B', elder: true }, { k: 'D' }]],
-  ['堂妹', [{ k: 'F' }, { k: 'B', elder: false }, { k: 'D' }]],
-  ['表哥', [{ k: 'M' }, { k: 'B', elder: true }, { k: 'S' }]],
-  ['表弟', [{ k: 'M' }, { k: 'B', elder: false }, { k: 'S' }]],
-  ['表姐', [{ k: 'M' }, { k: 'B', elder: true }, { k: 'D' }]],
-  ['表妹', [{ k: 'M' }, { k: 'B', elder: false }, { k: 'D' }]],
+  // 堂/表称谓词本身携带长幼信息：末位子女边标 elder，表示「长幼已由称谓词确定」。
+  // 而「姑姑的儿子」这类路径描述不含长幼 → 引擎输出「表哥(弟)」式合并称谓
+  ['堂哥', [{ k: 'F' }, { k: 'B', elder: true }, { k: 'S', elder: true }]],
+  ['堂弟', [{ k: 'F' }, { k: 'B', elder: false }, { k: 'S', elder: false }]],
+  ['堂姐', [{ k: 'F' }, { k: 'B', elder: true }, { k: 'D', elder: true }]],
+  ['堂妹', [{ k: 'F' }, { k: 'B', elder: false }, { k: 'D', elder: false }]],
+  ['表哥', [{ k: 'M' }, { k: 'B', elder: true }, { k: 'S', elder: true }]],
+  ['表弟', [{ k: 'M' }, { k: 'B', elder: false }, { k: 'S', elder: false }]],
+  ['表姐', [{ k: 'M' }, { k: 'B', elder: true }, { k: 'D', elder: true }]],
+  ['表妹', [{ k: 'M' }, { k: 'B', elder: false }, { k: 'D', elder: false }]],
   ['嫂子', [{ k: 'B', elder: true }, { k: 'W' }]],
   ['弟妹', [{ k: 'B', elder: false }, { k: 'W' }]],
   ['姐夫', [{ k: 'Z', elder: true }, { k: 'H' }]],
@@ -175,8 +177,8 @@ function lexToEdges(spec: LexEdge[], pendingRank: number | null): Edge[] {
 
 /** 解析关系描述 → 边序列；无法识别时抛 ParseError */
 export function parse(input: string): Edge[] {
-  // 去掉连接词与指代词
-  const text = input.replace(/\s+/g, '').replace(/[的俺]/g, '').replace(/^(我|本人|自家)/, '')
+  // 去掉连接词与指代词（「家」=「……家的女儿」中的连接成分）
+  const text = input.replace(/\s+/g, '').replace(/[的俺家]/g, '').replace(/^(我|本人|自家)/, '')
   const edges: Edge[] = []
   let pendingRank: number | null = null
   let i = 0

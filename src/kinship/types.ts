@@ -4,7 +4,8 @@ export type Kind = 'F' | 'M' | 'B' | 'Z' | 'S' | 'D' | 'H' | 'W'
 
 export interface Edge {
   k: Kind
-  /** 兄/姐（true）还是弟/妹（false）；仅在 B/Z 上有意义，缺省视为 true（宁大勿小） */
+  /** 兄/姐（true）还是弟/妹（false）；B/Z 上表示长幼。末位 S/D 上仅当长幼已由称谓词
+   *  （表哥、堂妹……）明确时才携带——路径描述（姑姑的儿子）不带 → 引擎按「长幼未知」处理 */
   elder?: boolean
   /** 排行（老大=1、老二=2……）；仅在 B/Z/S/D 上有意义 */
   n?: number

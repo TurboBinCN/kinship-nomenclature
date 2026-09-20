@@ -44,7 +44,18 @@ interface Entry {
   relationLabel: string
 }
 
-function makeEntry(edges: Edge[]): Entry {
+function makeEntry(pathEdges: Edge[]): Entry {
+  const edges = canonicalize(pathEdges)
+  // 末段为「兄弟/姐妹 → 子女」时，给末位子女边补上与长辈边一致的长幼标记。
+  // 枚举路径是明确陈述，应产出「表哥」「堂妹」等确定称谓进入索引
+  // （正向解析中只有直接称谓词带明确长幼，「姑姑的儿子」则得到合并式「表哥(弟)」）
+  if (edges.length >= 2) {
+    const b = edges[edges.length - 2]
+    const t = edges[edges.length - 1]
+    if ((b.k === 'B' || b.k === 'Z') && (t.k === 'S' || t.k === 'D') && t.elder === undefined) {
+      edges[edges.length - 1] = { ...t, elder: b.elder !== false }
+    }
+  }
   const { relation, label } = classify(edges)
   return {
     title: deriveTitle(edges),
@@ -75,8 +86,15 @@ function buildIndex(): Map<string, Entry[]> {
   for (const path of walk([])) {
     const c = canonicalize(path)
     put(makeEntry(c))
-    // 排行变体：与引擎语义一致，只取第一个可排行边（rankEdge / decorate 均取首个）
-    const i = c.findIndex((e) => e.k === 'B' || e.k === 'Z' || e.k === 'S' || e.k === 'D')
+    // 排行变体：与解析器一致，排行落在末位可排行边（大孙子 / 二表哥 / 三舅姥爷）
+    let i = -1
+    for (let j = c.length - 1; j >= 0; j--) {
+      const k = c[j].k
+      if (k === 'B' || k === 'Z' || k === 'S' || k === 'D') {
+        i = j
+        break
+      }
+    }
     if (i < 0) continue
     for (let n = 1; n <= MAX_RANK; n++) {
       put(makeEntry(c.map((e, j) => (j === i ? { ...e, n } : e))))
